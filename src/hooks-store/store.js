@@ -1,35 +1,39 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
-let globalState = {}
+let globalState = {};
 
-let listeners = []
+let listeners = [];
 
-let actions = {}
+let actions = {};
 
-export const useStore = () => {
-    const setState = useState(globalState)[1]
-    const dispatch = (actionIdentifier,payload) => {
-        const newState = actions[actionIdentifier](globalState, payload)
-        globalState = {...globalState, ...newState}
+export const useStore = (shouldListen = true) => {
+  const setState = useState(globalState)[1];
+  const dispatch = (actionIdentifier, payload) => {
+    const newState = actions[actionIdentifier](globalState, payload);
+    globalState = { ...globalState, ...newState };
 
-        for(const listener of listeners){
-            listener(globalState)
-        }
+    for (const listener of listeners) {
+      listener(globalState);
     }
-    useEffect(()=>{
-        listeners.push(setState)
+  };
+  useEffect(() => {
+    if (shouldListen) {
+      listeners.push(setState);
+    }
 
-        return () => {
-            listeners = listeners.filter(li => li !== setState)
-        }
-    }, [setState])
+    return () => {
+      if (shouldListen) {
+        listeners = listeners.filter((li) => li !== setState);
+      }
+    };
+  }, [setState]);
 
-    return [globalState, dispatch]
-}
+  return [globalState, dispatch];
+};
 
 export const initStore = (userActions, initState) => {
-    if(initState){
-        globalState = {...globalState, ...initState}
-    }
-    actions = {...actions, ...userActions}
-}
+  if (initState) {
+    globalState = { ...globalState, ...initState };
+  }
+  actions = { ...actions, ...userActions };
+};
